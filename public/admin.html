@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - BerlinFit</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo"><a href="/">Berlin<span class="text-gradient">Fit</span></a></div>
+                <div class="menu-toggle" id="mobile-menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+                <div class="nav-links">
+                    <a href="/dashboard.html">Dashboard</a>
+                    <a href="/admin-users.html">Manage Users</a>
+                    <a href="#" id="logout-btn">Logout</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>Admin Panel</h1>
+            <p>Manage Plans, Class Types, and Sessions.</p>
+        </div>
+
+
+        <!-- Create Plan -->
+        <div class="card" style="margin-top: 30px;">
+            <h3>Create Membership Plan</h3>
+            <form id="create-plan-form">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="planName" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="planDesc" required>
+                </div>
+                <div class="form-group">
+                    <label>Duration (Days)</label>
+                    <input type="number" id="planDuration" required>
+                </div>
+                <div class="form-group">
+                    <label>Price (€)</label>
+                    <input type="number" id="planPrice" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Plan</button>
+            </form>
+        </div>
+
+        <!-- Create Class Type -->
+        <div class="card" style="margin-top: 30px;">
+            <h3>Create Class Type</h3>
+            <form id="create-class-type-form">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="className" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="classDesc" required>
+                </div>
+                <div class="form-group">
+                    <label>Duration (Minutes)</label>
+                    <input type="number" id="classDuration" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Class Type</button>
+            </form>
+        </div>
+
+        <!-- Schedule Session -->
+        <div class="card" style="margin-top: 30px; grid-column: span 2;">
+            <h3>Schedule Class Session</h3>
+            <form id="schedule-session-form">
+                <div class="form-group">
+                    <label>Class Type</label>
+                    <select id="classTypeSelect"
+                        style="width: 100%; padding: 10px; background: rgba(0,0,0,0.2); color: white; border: 1px solid #444; border-radius: 4px;"></select>
+                </div>
+                <div class="form-group">
+                    <label>Start Time</label>
+                    <input type="datetime-local" id="sessionTime" required style="color-scheme: dark;">
+                </div>
+                <div class="form-group">
+                    <label>Capacity</label>
+                    <input type="number" id="sessionCapacity" value="10" required>
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" id="sessionLocation" value="Main Studio" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Schedule Session</button>
+            </form>
+        </div>
+
+
+        <!-- Plans List -->
+        <div class="card" style="margin-top: 30px;">
+            <h3>Existing Membership Plans</h3>
+            <input type="text" id="planFilter" placeholder="Filter plans..."
+                style="width: 100%; padding: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.2); color: white; border: 1px solid #444; border-radius: 4px;">
+            <div style="overflow-x: auto;">
+                <table id="plansTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Duration</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Class Types List -->
+        <div class="card" style="margin-top: 30px;">
+            <h3>Existing Class Types</h3>
+            <input type="text" id="classTypeFilter" placeholder="Filter class types..."
+                style="width: 100%; padding: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.2); color: white; border: 1px solid #444; border-radius: 4px;">
+            <div style="overflow-x: auto;">
+                <table id="classTypesTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Duration</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sessions List -->
+        <div class="card" style="margin-top: 30px;">
+            <h3>Scheduled Sessions</h3>
+            <input type="text" id="sessionFilter" placeholder="Filter sessions..."
+                style="width: 100%; padding: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.2); color: white; border: 1px solid #444; border-radius: 4px;">
+            <div style="overflow-x: auto;">
+                <table id="sessionsTable">
+                    <thead>
+                        <tr>
+                            <th>Class</th>
+                            <th>Time</th>
+                            <th>Location</th>
+                            <th>Capacity</th>
+                            <th>Available</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Bookings Modal -->
+    <div id="sessionBookingsModal" class="modal"
+        style="display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.8);">
+        <div class="card" style="margin: 10% auto; padding: 20px; width: 80%; max-width: 600px; position: relative;">
+            <span onclick="closeSessionBookingsModal()"
+                style="color:#aaa; float:right; font-size:28px; font-weight:bold; cursor:pointer;">&times;</span>
+            <h3 id="sessionBookingsModalTitle">Session Bookings</h3>
+            <div id="sessionBookingsList"></div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        let classTypes = [];
+        let plans = [];
+        let sessions = [];
+
+        let editingPlanId = null;
+        let editingClassTypeId = null;
+        let editingSessionId = null;
+
+        async function init() {
+            const user = await Auth.check();
+            if (!user || user.role !== 'admin') {
+                window.location.href = '/login.html';
+                return;
+            }
+            UI.updateNav(user);
+            loadClassTypes();
+            loadPlans();
+            loadSessions();
+        }
+
+        async function loadClassTypes() {
+            try {
+                const res = await fetch('/api/admin/class-types');
+                if (res.ok) {
+                    classTypes = await res.json();
+                    const select = document.getElementById('classTypeSelect');
+                    select.innerHTML = classTypes.map(ct =>
+                        `<option value="${ct._id}">${ct.name} (${ct.defaultDurationMinutes} min)</option>`
+                    ).join('');
+                    renderClassTypes();
+                }
+            } catch (e) {
+                console.error('Failed to load class types', e);
+            }
+        }
+
+        async function loadPlans() {
+            try {
+                const res = await fetch('/api/plans');
+                if (res.ok) {
+                    plans = await res.json();
+                    renderPlans();
+                }
+            } catch (e) {
+                console.error('Failed to load plans', e);
+            }
+        }
+
+        async function loadSessions() {
+            try {
+                const res = await fetch('/api/admin/class-sessions');
+                if (res.ok) {
+                    sessions = await res.json();
+                    renderSessions();
+                }
+            } catch (e) {
+                console.error('Failed to load sessions', e);
+            }
+        }
+
+        // Render Functions
+        function renderPlans() {
+            const filter = document.getElementById('planFilter').value.toLowerCase();
+            const tbody = document.querySelector('#plansTable tbody');
+            tbody.innerHTML = plans
+                .filter(p => p.name.toLowerCase().includes(filter) || p.description.toLowerCase().includes(filter))
+                .map(p => `
+                    <tr>
+                        <td>${p.name}</td>
+                        <td>${p.description}</td>
+                        <td>${p.durationDays} days</td>
+                        <td>€${p.priceEuro}</td>
+                        <td>
+                            <button onclick="editPlan('${p._id}')" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem;">Edit</button>
+                            <button onclick="deletePlan('${p._id}')" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; color: var(--danger-color); border-color: var(--danger-color);">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+        }
+
+        function renderClassTypes() {
+            const filter = document.getElementById('classTypeFilter').value.toLowerCase();
+            const tbody = document.querySelector('#classTypesTable tbody');
+            tbody.innerHTML = classTypes
+                .filter(ct => ct.name.toLowerCase().includes(filter) || ct.description.toLowerCase().includes(filter))
+                .map(ct => `
+                    <tr>
+                        <td>${ct.name}</td>
+                        <td>${ct.description}</td>
+                        <td>${ct.defaultDurationMinutes} min</td>
+                        <td>
+                            <button onclick="editClassType('${ct._id}')" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem;">Edit</button>
+                            <button onclick="deleteClassType('${ct._id}')" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; color: var(--danger-color); border-color: var(--danger-color);">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+        }
+
+        function renderSessions() {
+            const filter = document.getElementById('sessionFilter').value.toLowerCase();
+            const tbody = document.querySelector('#sessionsTable tbody');
+            tbody.innerHTML = sessions
+                .filter(s => {
+                    const className = s.classType ? s.classType.name : 'Unknown';
+                    return className.toLowerCase().includes(filter) || s.location.toLowerCase().includes(filter);
+                })
+                .map(s => {
+                    const className = s.classType ? s.classType.name : 'Unknown';
+                    const startTime = new Date(s.startTime).toLocaleString();
+                    return `
+                    <tr>
+                        <td>${className}</td>
+                        <td>${startTime}</td>
+                        <td>${s.location}</td>
+                        <td>${s.capacity}</td>
+                        <td>${s.availableSpots}</td>
+                        <td>
+                            <button onclick="editSession('${s._id}')" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem;">Edit</button>
+                            <button onclick="deleteSession('${s._id}')" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; color: var(--danger-color); border-color: var(--danger-color);">Delete</button>
+                            <button onclick="viewSessionBookings('${s._id}', '${className}')" class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem; color: var(--primary-color); border-color: var(--primary-color);">Bookings</button>
+                        </td>
+                    </tr>
+                `}).join('');
+        }
+
+        // Filter Listeners
+        document.getElementById('planFilter').addEventListener('input', renderPlans);
+        document.getElementById('classTypeFilter').addEventListener('input', renderClassTypes);
+        document.getElementById('sessionFilter').addEventListener('input', renderSessions);
+
+        // Edit Functions
+        window.editPlan = (id) => {
+            const plan = plans.find(p => p._id === id);
+            if (!plan) return;
+            document.getElementById('planName').value = plan.name;
+            document.getElementById('planDesc').value = plan.description;
+            document.getElementById('planDuration').value = plan.durationDays;
+            document.getElementById('planPrice').value = plan.priceEuro;
+            editingPlanId = id;
+            document.querySelector('#create-plan-form button').textContent = 'Update Plan';
+            window.scrollTo(0, 0);
+        };
+
+        window.editClassType = (id) => {
+            const ct = classTypes.find(c => c._id === id);
+            if (!ct) return;
+            document.getElementById('className').value = ct.name;
+            document.getElementById('classDesc').value = ct.description;
+            document.getElementById('classDuration').value = ct.defaultDurationMinutes;
+            editingClassTypeId = id;
+            document.querySelector('#create-class-type-form button').textContent = 'Update Class Type';
+            window.scrollTo(0, 0);
+        };
+
+        window.editSession = (id) => {
+            const s = sessions.find(sess => sess._id === id);
+            if (!s) return;
+            document.getElementById('classTypeSelect').value = s.classType._id || s.classType;
+            // Format date for datetime-local input (YYYY-MM-DDTHH:mm)
+            const date = new Date(s.startTime);
+            date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+            document.getElementById('sessionTime').value = date.toISOString().slice(0, 16);
+
+            document.getElementById('sessionCapacity').value = s.capacity;
+            document.getElementById('sessionLocation').value = s.location;
+            editingSessionId = id;
+            document.querySelector('#schedule-session-form button').textContent = 'Update Session';
+            window.scrollTo(0, 0);
+        };
+
+        // Delete Functions
+        window.deletePlan = async (id) => {
+            if (!confirm('Are you sure?')) return;
+            const res = await fetch(`/api/plans/${id}`, { method: 'DELETE' });
+            if (res.ok) loadPlans();
+        };
+
+        window.deleteClassType = async (id) => {
+            if (!confirm('Are you sure?')) return;
+            const res = await fetch(`/api/admin/class-types/${id}`, { method: 'DELETE' });
+            if (res.ok) loadClassTypes();
+        };
+
+        window.deleteSession = async (id) => {
+            if (!confirm('Are you sure?')) return;
+            const res = await fetch(`/api/admin/class-sessions/${id}`, { method: 'DELETE' });
+            if (res.ok) loadSessions();
+        };
+
+        document.getElementById('create-plan-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('planName').value,
+                description: document.getElementById('planDesc').value,
+                durationDays: document.getElementById('planDuration').value,
+                priceEuro: document.getElementById('planPrice').value
+            };
+
+            let url = '/api/plans';
+            let method = 'POST';
+            if (editingPlanId) {
+                url = `/api/plans/${editingPlanId}`;
+                method = 'PUT';
+            }
+
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert(editingPlanId ? 'Plan Updated' : 'Plan Created');
+                e.target.reset();
+                editingPlanId = null;
+                document.querySelector('#create-plan-form button').textContent = 'Create Plan';
+                loadPlans();
+            }
+            else alert('Error saving plan');
+        });
+
+        document.getElementById('create-class-type-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('className').value,
+                description: document.getElementById('classDesc').value,
+                defaultDurationMinutes: document.getElementById('classDuration').value
+            };
+
+            let url = '/api/admin/class-types';
+            let method = 'POST';
+            if (editingClassTypeId) {
+                url = `/api/admin/class-types/${editingClassTypeId}`;
+                method = 'PUT';
+            }
+
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert(editingClassTypeId ? 'Class Type Updated' : 'Class Type Created');
+                e.target.reset();
+                editingClassTypeId = null;
+                document.querySelector('#create-class-type-form button').textContent = 'Create Class Type';
+                loadClassTypes(); // Refresh list
+            }
+            else alert('Error saving class type');
+        });
+
+        document.getElementById('schedule-session-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const typeId = document.getElementById('classTypeSelect').value;
+            const startTimeStr = document.getElementById('sessionTime').value;
+            const capacity = document.getElementById('sessionCapacity').value;
+            const location = document.getElementById('sessionLocation').value;
+
+            const classType = classTypes.find(ct => ct._id === typeId);
+            if (!classType) return;
+
+            const startTime = new Date(startTimeStr);
+            const endTime = new Date(startTime.getTime() + classType.defaultDurationMinutes * 60000);
+
+            const data = {
+                classType: typeId,
+                startTime: startTime.toISOString(),
+                endTime: endTime.toISOString(),
+                capacity,
+                location
+            };
+
+            let url = '/api/admin/class-sessions';
+            let method = 'POST';
+            if (editingSessionId) {
+                url = `/api/admin/class-sessions/${editingSessionId}`;
+                method = 'PUT';
+            }
+
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                alert(editingSessionId ? 'Session Updated' : 'Session Scheduled');
+                e.target.reset();
+                editingSessionId = null;
+                document.querySelector('#schedule-session-form button').textContent = 'Schedule Session';
+                loadSessions();
+            } else {
+                alert('Error saving session');
+            }
+        });
+
+        window.viewSessionBookings = async (sessionId, className) => {
+            // Re-use logic or create new modal. Creating new modal inline for simplicity
+            let modal = document.getElementById('sessionBookingsModal');
+            if (!modal) {
+                // Create modal dynamically if not exists (or add to HTML, trying inline create approach)
+                // Actually, let's inject modal HTML into body once
+            }
+            // better way to add modal
+            document.getElementById('sessionBookingsModalTitle').textContent = 'Bookings for: ' + className;
+            document.getElementById('sessionBookingsModal').style.display = 'block';
+
+            document.getElementById('sessionBookingsList').innerHTML = '<p>Loading...</p>';
+
+            try {
+                const res = await fetch(`/api/admin/class-sessions/${sessionId}/bookings`);
+                const bookings = await res.json();
+
+                const container = document.getElementById('sessionBookingsList');
+
+                if (bookings.length === 0) {
+                    container.innerHTML = '<p>No bookings for this session.</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table style="width:100%; border-collapse: collapse; margin-top:10px;">
+                        <thead>
+                            <tr style="text-align:left; border-bottom:1px solid #444;">
+                                <th style="padding:8px;">User</th>
+                                <th style="padding:8px;">Email</th>
+                                <th style="padding:8px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${bookings.map(b => `
+                                <tr style="border-bottom:1px solid #333;">
+                                    <td style="padding:8px;">${b.user.fullName}</td>
+                                    <td style="padding:8px;">${b.user.email}</td>
+                                    <td style="padding:8px;">${b.status}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (e) {
+                console.error(e);
+                document.getElementById('sessionBookingsList').innerHTML = '<p>Error loading bookings.</p>';
+            }
+        };
+
+        window.updateAttendance = async (bookingId, status) => {
+            if (!confirm('Mark as ' + status + '?')) return;
+
+
+            try {
+                await fetch(`/api/bookings/admin/${bookingId}/attendance`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+
+                // simple alert
+                alert('Attendance updated');
+            } catch (e) {
+                alert('Error updating');
+            }
+        };
+
+
+        window.closeSessionBookingsModal = () => {
+            document.getElementById('sessionBookingsModal').style.display = 'none';
+        };
+
+
+        init();
+    </script>
+</body>
+
+</html>

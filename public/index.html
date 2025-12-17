@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BerlinFit - Premium Personal Training</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">Berlin<span class="text-gradient">Fit</span></div>
+                <div class="menu-toggle" id="mobile-menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+                <div class="nav-links">
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1 class="animate-fade-up">Transform Your Body<br><span class="text-gradient">Elevate Your Life</span></h1>
+            <p class="animate-fade-up" style="animation-delay: 0.1s;">Exclusive personal training and fitness classes in
+                the heart of Berlin. Join a community dedicated to excellence.</p>
+            <div class="hero-btns animate-fade-up" style="animation-delay: 0.2s;">
+                <a href="/register.html" class="btn btn-primary">Start Your Journey</a>
+                <a href="#plans" class="btn btn-outline">View Plans</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <div class="grid">
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-img-container">
+                        <img src="/images/feature-1.png" alt="Expert Trainers" class="feature-img">
+                    </div>
+                    <div class="feature-content">
+                        <h3>Expert Trainers</h3>
+                        <p>Work with elite coaches who personalize every workout to your goals.</p>
+                    </div>
+                </div>
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-img-container">
+                        <img src="/images/feature-2.png" alt="High-Intensity" class="feature-img">
+                    </div>
+                    <div class="feature-content">
+                        <h3>High-Intensity</h3>
+                        <p>Experience classes designed to push your limits and maximize results.</p>
+                    </div>
+                </div>
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-img-container">
+                        <img src="/images/feature-3.png" alt="Community" class="feature-img">
+                    </div>
+                    <div class="feature-content">
+                        <h3>Community</h3>
+                        <p>Join a supportive tribe of like-minded individuals on the same path.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container" id="plans">
+        <h2 class="section-title animate-on-scroll">Membership Plans</h2>
+        <div class="grid" id="plans-grid">
+            <!-- Plans loaded here -->
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">Berlin<span class="text-gradient">Fit</span></div>
+                <div class="footer-links">
+                    <a href="#">About</a>
+                    <a href="#">Classes</a>
+                    <a href="#">Trainers</a>
+                    <a href="#">Contact</a>
+                </div>
+                <div class="copyright">
+                    &copy; This app is for M607 Computer Science Application Lab Assessment @ Gisma University of
+                    Applied Sciences
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // get plans
+        async function loadPlans() {
+            try {
+                const res = await fetch('/api/plans');
+                const plans = await res.json();
+
+                const grid = document.getElementById('plans-grid');
+
+                grid.innerHTML = plans.map((plan, index) => `
+                    <div class="card animate-on-scroll" style="animation-delay: ${index * 0.1}s;">
+                        <h3>${plan.name}</h3>
+                        <div class="price">€${plan.priceEuro}<span>/${plan.durationDays} days</span></div>
+                        <p>${plan.description}</p>
+                        <br>
+                        <a href="/register.html" class="btn btn-outline" style="width: 100%; text-align: center;">Choose Plan</a>
+                    </div>
+                `).join('');
+
+
+                // animations
+                observeAnimations();
+            } catch (e) {
+                console.error('Failed to load plans', e);
+            }
+        }
+
+        function observeAnimations() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+        }
+
+        loadPlans();
+    </script>
+</body>
+
+</html>

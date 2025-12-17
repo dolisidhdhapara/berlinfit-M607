@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manage Users</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .user-table th,
+        .user-table td {
+            text-align: left;
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-table th {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--primary-color);
+        }
+
+        .user-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .status-active {
+            color: #4ade80;
+        }
+
+        .status-inactive {
+            color: #f87171;
+        }
+
+        .btn-activate {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+            border: 1px solid #4ade80;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .btn-activate:hover {
+            background: #4ade80;
+            color: black;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: #1a1a1a;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #333;
+            width: 300px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: white;
+        }
+
+        .booking-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo"><a href="/">Berlin<span class="text-gradient">Fit</span></a></div>
+                <div class="menu-toggle" id="mobile-menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+                <div class="nav-links">
+                    <a href="/admin.html">Admin Panel</a>
+                    <a href="/admin-users.html">Admin Users</a>
+                    <a href="/dashboard.html">Dashboard</a>
+                    <a href="#" id="logout-btn">Logout</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>Manage Users</h1>
+            <p>View and manage user memberships.</p>
+        </div>
+
+        <div class="card" style="overflow-x: auto;">
+            <div id="loading" style="text-align: center; padding: 20px;">Loading users...</div>
+            <table class="user-table" id="users-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Membership</th>
+                        <th>Expires</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-list">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Activation Modal -->
+    <div id="activationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('activationModal')">&times;</span>
+            <h3 style="margin-bottom: 20px;">Activate Membership</h3>
+            <p id="modalUserName" style="margin-bottom: 15px; color: #aaa;"></p>
+
+            <label for="planSelect" style="display:block; margin-bottom:5px;">Select Plan:</label>
+            <select id="planSelect"
+                style="width: 100%; padding: 10px; margin-bottom: 20px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
+            </select>
+
+            <button onclick="confirmActivation()" class="btn btn-primary" style="width: 100%;">Confirm
+                Activation</button>
+        </div>
+    </div>
+
+    <!-- Bookings Modal -->
+    <div id="bookingsModal" class="modal">
+        <div class="modal-content" style="width: 500px; max-height: 80vh; overflow-y: auto;">
+            <span class="close" onclick="closeModal('bookingsModal')">&times;</span>
+            <h3 style="margin-bottom: 20px;">User Bookings</h3>
+            <p id="bookingModalUserName" style="margin-bottom: 15px; color: #aaa;"></p>
+            <div id="bookingsList">
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        let selectedUserId = null;
+        let plans = [];
+
+        async function init() {
+            const user = await Auth.check();
+            if (!user || user.role !== 'admin') {
+                alert('Access Denied');
+                window.location.href = '/dashboard.html';
+                return;
+            }
+
+            loadUsers();
+            loadPlans();
+
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                Auth.logout();
+            });
+        }
+
+        async function loadPlans() {
+            try {
+                const res = await fetch('/api/plans');
+                if (res.ok) {
+                    plans = await res.json();
+                    const select = document.getElementById('planSelect');
+                    select.innerHTML = plans.map(p =>
+                        `<option value="${p._id}">${p.name} - ${p.durationDays} Days</option>`
+                    ).join('');
+                }
+            } catch (e) {
+                console.error('Failed to load plans');
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/admin/users', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+                });
+
+                const users = await res.json();
+                renderUsers(users);
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('loading').textContent = 'Error loading users.';
+            }
+        }
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('users-list');
+            tbody.innerHTML = '';
+
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No users found.</td></tr>';
+            }
+
+            users.forEach(user => {
+                const tr = document.createElement('tr');
+                const isMember = user.membershipStatus === 'Active';
+                const dateStr = user.membershipExpires ? new Date(user.membershipExpires).toLocaleDateString() : '-';
+
+                tr.innerHTML = `
+                    <td>${user.fullName}</td>
+                    <td>${user.email}</td>
+                    <td><span class="badge">${user.role}</span></td>
+                    <td class="${isMember ? 'status-active' : 'status-inactive'}">${user.membershipStatus}</td>
+                    <td>${dateStr}</td>
+                    <td>
+                        <button class="btn-activate" onclick="openActivationModal('${user._id}', '${user.fullName}')">
+                            ${isMember ? 'Extend' : 'Activate'}
+                        </button>
+                        <button class="btn-activate" style="border-color: var(--primary-color); color: var(--primary-color); margin-left: 5px;" onclick="openBookingsModal('${user._id}', '${user.fullName}')">
+                            View Bookings
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('users-table').style.display = 'table';
+        }
+
+        window.openActivationModal = (userId, userName) => {
+            selectedUserId = userId;
+            document.getElementById('modalUserName').textContent = 'For: ' + userName;
+            document.getElementById('activationModal').style.display = 'block';
+        };
+
+        window.openBookingsModal = async (userId, userName) => {
+            document.getElementById('bookingModalUserName').textContent = 'For: ' + userName;
+            document.getElementById('bookingsModal').style.display = 'block';
+            document.getElementById('bookingsList').innerHTML = '<p>Loading...</p>';
+
+            try {
+                const res = await fetch(`/api/admin/users/${userId}/bookings`, {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+                });
+                const bookings = await res.json();
+
+                const container = document.getElementById('bookingsList');
+                if (bookings.length === 0) {
+                    container.innerHTML = '<p>No bookings found for this user.</p>';
+                    return;
+                }
+
+                container.innerHTML = bookings.map(b => {
+                    const session = b.classSession;
+                    const date = session ? new Date(session.startTime).toLocaleString() : 'Unknown Date';
+                    const className = session && session.classType ? session.classType.name : 'Unknown Class';
+
+                    return `
+                        <div class="booking-item">
+                            <div style="display:flex; justify-content:space-between;">
+                                <strong>${className}</strong>
+                                <span style="font-size:0.8rem; color:#aaa;">${b.status}</span>
+                            </div>
+                            <div style="margin-top:4px; color:#ccc;">${date}</div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('bookingsList').innerHTML = '<p>Error loading bookings.</p>';
+            }
+        };
+
+        window.closeModal = (modalId) => {
+            document.getElementById(modalId).style.display = 'none';
+            if (modalId === 'activationModal') selectedUserId = null;
+        };
+
+        window.confirmActivation = async () => {
+            if (!selectedUserId) return;
+            const planId = document.getElementById('planSelect').value;
+
+            try {
+                const res = await fetch('/api/admin/users/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: selectedUserId, planId })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert('Membership activated successfully!');
+                    closeModal('activationModal');
+                    loadUsers();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Failed to activate membership.');
+            }
+        };
+
+        // close modal outside click
+        window.onclick = function (event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+
+        init();
+    </script>
+</body>
+
+</html>

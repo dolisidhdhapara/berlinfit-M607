@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BerlinFit</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo"><a href="/">Berlin<span class="text-gradient">Fit</span></a></div>
+                <div class="menu-toggle" id="mobile-menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+                <div class="nav-links">u-toggle" id="mobile-menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+                <div class="nav-links">
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>My Dashboard</h1>
+            <div id="membership-status" class="status-badge">Loading...</div>
+        </div>
+
+        <div class="grid" style="margin-top: 0;">
+            <div class="card" style="grid-column: span 2;">
+                <h3>Upcoming Classes</h3>
+                <div id="upcoming-classes">Loading...</div>
+            </div>
+            <div class="card">
+                <h3>My Membership</h3>
+                <div id="membership-details">
+                    <p>Loading details...</p>
+                </div>
+                <div id="paypal-button-container" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <h2 style="margin-top: 40px;">Book a Class</h2>
+        <div id="schedule-grid" class="grid">
+            <!-- Schedule items -->
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        let currentUser = null;
+
+        async function init() {
+            currentUser = await Auth.check();
+            if (!currentUser) {
+                window.location.href = '/login.html';
+                return;
+            }
+            UI.updateNav(currentUser);
+
+            if (currentUser.role === 'admin') {
+                const navLinks = document.querySelector('.nav-links');
+                const adminLink = document.createElement('a');
+                adminLink.href = '/admin-users.html';
+                adminLink.textContent = 'Manage Users';
+                adminLink.style.color = '#4ade80';
+                navLinks.insertBefore(adminLink, navLinks.lastElementChild);
+            }
+
+            loadMembershipStatus();
+            loadUpcomingBookings();
+            loadSchedule();
+            // initPayPal();
+        }
+
+        async function loadMembershipStatus() {
+            const res = await fetch('/api/memberships/my/status');
+            const data = await res.json();
+
+            const statusEl = document.getElementById('membership-status');
+            const detailsEl = document.getElementById('membership-details');
+
+            if (data.status === 'active') {
+                statusEl.textContent = 'Active Member';
+                statusEl.className = 'status-badge status-active';
+                detailsEl.innerHTML = `
+                    <p><strong>Plan:</strong> ${data.planName}</p>
+                    <p><strong>Expires:</strong> ${new Date(data.endDate).toLocaleDateString()}</p>
+                `;
+            } else {
+                statusEl.textContent = 'No Active Membership';
+                statusEl.className = 'status-badge status-expired';
+                detailsEl.innerHTML = `<p>You need an active membership to book classes.</p>`;
+                loadPlansForPurchase();
+                initPayPal();
+            }
+        }
+
+        async function loadPlansForPurchase() {
+            const res = await fetch('/api/plans');
+            const plans = await res.json();
+            const container = document.getElementById('membership-details');
+
+            let html = '<select id="plan-select" style="width: 100%; padding: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.2); color: white; border: 1px solid #444; border-radius: 4px;">';
+            plans.forEach(plan => {
+                html += `<option value="${plan._id}">${plan.name} - €${plan.priceEuro}</option>`;
+            });
+            html += '</select>';
+            container.innerHTML += html;
+        }
+
+        async function initPayPal() {
+            try {
+                const configRes = await fetch('/api/config/paypal');
+                const config = await configRes.json();
+
+                const script = document.createElement('script');
+                script.src = `https://www.paypal.com/sdk/js?client-id=${config.clientId}&currency=EUR`;
+                script.onerror = () => {
+                    console.error('PayPal SDK could not be loaded.');
+                    document.getElementById('paypal-button-container').innerHTML = '<p class="error">Failed to load payment system. Please check configuration.</p>';
+                };
+                script.onload = () => {
+                    paypal.Buttons({
+                        createOrder: async (data, actions) => {
+                            const planId = document.getElementById('plan-select').value;
+                            const res = await fetch('/api/payments/create-order', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ planId })
+                            });
+                            const order = await res.json();
+                            return order.orderId;
+                        },
+                        onApprove: async (data, actions) => {
+                            const res = await fetch('/api/payments/capture-order', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ orderId: data.orderID })
+                            });
+                            const capture = await res.json();
+                            alert('Membership Activated!');
+                            location.reload();
+                        }
+                    }).render('#paypal-button-container');
+                };
+                document.body.appendChild(script);
+            } catch (e) {
+                console.error('PayPal Init Failed', e);
+            }
+        }
+
+        async function loadUpcomingBookings() {
+            const container = document.getElementById('upcoming-classes');
+            try {
+                const res = await fetch('/api/bookings/my/upcoming');
+                const bookings = await res.json();
+
+                if (bookings.length === 0) {
+                    container.innerHTML = '<p>No upcoming classes booked.</p>';
+                    return;
+                }
+
+                container.innerHTML = bookings.map(b => {
+                    const session = b.classSession;
+
+                    const trainerName = session.trainer ? session.trainer.fullName : 'TBA';
+                    return `
+                    <div style="background: rgba(255,255,255,0.05); padding: 10px; margin-bottom: 10px; border-radius: 4px;">
+                        <strong>${session.classType.name}</strong><br>
+                        <small>${new Date(session.startTime).toLocaleString()}</small><br>
+                        <small>Trainer: ${trainerName}</small><br>
+                        <small>Location: ${session.location}</small>
+                    </div>
+                `}).join('');
+            } catch (e) {
+                console.error('Failed to load upcoming bookings', e);
+                container.innerHTML = '<p>Error loading bookings.</p>';
+            }
+        }
+
+        async function loadSchedule() {
+            const res = await fetch('/api/schedule/upcoming');
+            const sessions = await res.json();
+            const grid = document.getElementById('schedule-grid');
+
+            if (sessions.length === 0) {
+                grid.innerHTML = '<p>No upcoming classes scheduled.</p>';
+                return;
+            }
+
+            grid.innerHTML = sessions.map(session => `
+                <div class="card">
+                    <h3>${session.classType.name}</h3>
+                    <p>${new Date(session.startTime).toLocaleString()}</p>
+                    <p>Trainer: ${session.trainer ? session.trainer.fullName : 'TBA'}</p>
+                    <p>Available Spots: ${session.availableSpots}</p>
+                    <br>
+                    <button onclick="bookClass('${session._id}')" class="btn btn-outline" style="width: 100%;">Book Now</button>
+                </div>
+            `).join('');
+        }
+
+        async function bookClass(sessionId) {
+            try {
+                const res = await fetch('/api/bookings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ classSessionId: sessionId })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert('Class booked successfully!');
+                    loadSchedule();
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                alert('Booking failed');
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
