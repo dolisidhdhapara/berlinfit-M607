@@ -1,6 +1,7 @@
 # BerlinFit
 
 A web application for a Fitness Class Scheduling & Membership System for a single personal trainer who owns a small studio in Berlin.
+Demo Link : https://berlinfit.onrender.com
 
 ## Features
 - **User Roles**: Admin (Trainer) and Members.
@@ -31,7 +32,7 @@ Before you begin, ensure you have the following installed on your computer:
 ### 1. Clone or Download the Project
 If you have Git installed:
 ```bash
-git clone <repository-url>
+git clone https://github.com/dolisidhdhapara/berlinfit-M607.git
 cd berlinfit
 ```
 Or download the ZIP file and extract it.
@@ -60,6 +61,7 @@ MONGO_URI=mongodb://localhost:27017/berlinfit
 PAYPAL_ENV=sandbox
 PAYPAL_CLIENT_ID=your_sandbox_client_id_here
 PAYPAL_CLIENT_SECRET=your_sandbox_client_secret_here
+PAYPAL_WEBHOOK_ID=your_webhook_id_here
 ```
 
 ### 4. Start the Server
